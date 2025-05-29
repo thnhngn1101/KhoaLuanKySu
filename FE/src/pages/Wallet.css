@@ -1,0 +1,59 @@
+.wallet-card {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.wallet-user {
+  font-weight: bold;
+  margin-top: 10px;
+  color: #555;
+}
+
+.wallet-warning {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.wallet-ok {
+  background: #e6f4ea;
+  color: #2e7d32;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.wallet-topup-form {
+  margin-top: 20px;
+}
+
+.wallet-topup-form input {
+  width: 70%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.topup-btn {
+  background: #28a745;
+  color: white;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.wallet-message {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #333;
+}

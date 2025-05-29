@@ -1,0 +1,130 @@
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+    background-color: #f5f8fb;
+  }
+  
+  .auth-box {
+    background-color: #fff;
+    padding: 2.5rem;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .auth-box h2 {
+    color: #007bff;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .auth-box p {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .auth-box form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .auth-box input {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  
+  .auth-box button {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  /* Đăng nhập - nút xanh dương */
+  .auth-box button[type="submit"]:not(.green) {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .auth-box button[type="submit"]:not(.green):hover {
+    background-color: #0056b3;
+  }
+  
+  /* Đặt lại mật khẩu - nút xanh lá */
+  .auth-box button.green {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .auth-box button.green:hover {
+    background-color: #218838;
+  }
+  
+  /* Gợi ý / phản hồi */
+  .auth-box .error {
+    color: red;
+    margin-bottom: 10px;
+  }
+  
+  .auth-box .message {
+    margin-top: 10px;
+    color: #555;
+    text-align: center;
+  }
+  
+  .switch-link {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  
+  .switch-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .switch-link a:hover {
+    text-decoration: underline;
+  }
+  
+  .message {
+    color: #28a745;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  /* Giao diện hồ sơ người dùng */
+.auth-box h3 {
+    margin-top: 1.5rem;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .message {
+    color: green;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+  
+  .auth-box hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 20px 0;
+  }
+  
+  .small-error {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    color: red;
+  }
+  

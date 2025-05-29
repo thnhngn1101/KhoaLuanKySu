@@ -1,0 +1,137 @@
+.profile-wrapper {
+  padding: 30px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.profile-container {
+  max-width: 700px;
+  margin: auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.avatar-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 26px;
+  color: #333;
+}
+
+.user-type {
+  color: #777;
+  font-style: italic;
+}
+
+.info-section {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.info-row {
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #444;
+}
+
+.info-row span {
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-weight: bold;
+}
+
+.primary-btn {
+  background-color: #2f80ed;
+  color: white;
+}
+
+.primary-btn:hover {
+  background-color: #1c5fc3;
+}
+
+.secondary-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.secondary-btn:hover {
+  background-color: #c4c4c4;
+}
+
+.edit-form,
+.password-form,
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.edit-form input,
+.password-form input,
+.upload-form input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.message {
+  color: green;
+  font-weight: bold;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+.warning-text {
+  color: #e67e22;
+  font-size: 14px;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+.toast-success {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #27ae60;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  font-weight: bold;
+  animation: fadeInOut 3s ease;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(10px); }
+}
