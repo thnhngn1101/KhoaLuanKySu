@@ -1,65 +1,78 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios' // ✅ Dùng trực tiếp axios thay vì api
+import axios from 'axios'
 import './PaymentHistory.css'
 
 const PaymentHistory = () => {
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const userCCCD = localStorage.getItem('user_cccd')  // Lấy tự động từ localStorage
+  const baseURL = 'http://localhost:5000'
 
   useEffect(() => {
+    if (!userCCCD) {
+      setError('Không có thông tin CCCD. Vui lòng đăng nhập lại.')
+      setLoading(false)
+      return
+    }
     const fetchHistory = async () => {
+      setLoading(true)
+      setError('')
       try {
-        // 🔐 Nếu bạn có token xác thực, dùng Authorization
-        // const token = localStorage.getItem('token')
-
-        const res = await axios.get('http://localhost:5000/payment-history', {
-          headers: {
-            // Authorization: `Bearer ${token}`,
-            user_cccd: '001123456789', // 👈 Giả lập CCCD nếu chưa có auth
-          },
+        const res = await axios.get(`${baseURL}/payment-history`, {
+          params: { user_cccd: userCCCD }
         })
         setHistory(res.data)
       } catch (err) {
-        console.error(err)
-        setError('Không thể tải lịch sử giao dịch.')
+        setError('Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.')
+        setHistory([])
       } finally {
         setLoading(false)
       }
     }
-
     fetchHistory()
-  }, [])
+  }, [userCCCD])
+
+  const formatDate = (dateString) => {
+    if (!dateString) return ''
+    const d = new Date(dateString)
+    return isNaN(d.getTime()) ? dateString : d.toLocaleString('vi-VN', { hour12: false })
+  }
 
   return (
-    <div className="payment-container">
-      <h2>Lịch sử giao dịch</h2>
-
-      {loading && <p>Đang tải dữ liệu...</p>}
-      {error && <p className="error">{error}</p>}
-      {!loading && history.length === 0 && <p>Không có giao dịch nào.</p>}
-
-      {!loading && history.length > 0 && (
-        <table className="payment-table">
-          <thead>
-            <tr>
-              <th>Loại</th>
-              <th>Số tiền</th>
-              <th>Mô tả</th>
-              <th>Thời gian</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((item, index) => (
-              <tr key={index}>
-                <td>{item.type === 'topup' ? 'Nạp tiền' : 'Thanh toán'}</td>
-                <td>{item.amount.toLocaleString()} VND</td>
-                <td>{item.description}</td>
-                <td>{item.time}</td>
+    <div className="payment-history-card">
+      <h3>Lịch sử giao dịch</h3>
+      {loading ? (
+        <p>Đang tải...</p>
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p>
+      ) : history.length === 0 ? (
+        <p>Không có giao dịch nào.</p>
+      ) : (
+        <div className="history-table-wrapper">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Số tiền</th>
+                <th>Biển số xe</th>
+                <th>Mã tuyến</th>
+                <th>Tuyến xe</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {history.map((item, idx) => (
+                <tr key={item.id || idx}>
+                  <td>{formatDate(item.paid_at || item.created_at)}</td>
+                  <td>{item.amount?.toLocaleString('vi-VN') || ''} VND</td>
+                  <td>{item.bus_license_plate || item.license_plate || '-'}</td>
+                  <td>{item.route_id || '-'}</td>
+                  <td>{item.route_name || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )

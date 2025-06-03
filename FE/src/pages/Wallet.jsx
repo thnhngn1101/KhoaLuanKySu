@@ -8,9 +8,10 @@ const qrImages = {
   100000: '/qr/qr-100k.png'
 }
 
-const CCCD = '087303004730'
-
 const Wallet = () => {
+  // Lấy CCCD từ localStorage (không gán cứng)
+  const CCCD = localStorage.getItem('user_cccd')
+
   const [balance, setBalance] = useState(0)
   const [amount, setAmount] = useState(null)
   const [qrUrl, setQrUrl] = useState('')
@@ -22,6 +23,7 @@ const Wallet = () => {
 
   // Lấy số dư ví từ backend (GET, truyền user_cccd qua params)
   const fetchBalance = async () => {
+    if (!CCCD) return
     try {
       const res = await axios.get(`${baseURL}/wallet`, {
         params: { user_cccd: CCCD }
@@ -32,8 +34,9 @@ const Wallet = () => {
     }
   }
 
-  // Lấy tên người dùng từ backend (GET, truyền user_cccd qua params)
+  // Lấy tên người dùng từ backend
   const fetchUserInfo = async () => {
+    if (!CCCD) return
     try {
       const res = await axios.get(`${baseURL}/user-info`, {
         params: { user_cccd: CCCD }
@@ -51,35 +54,52 @@ const Wallet = () => {
     setMessage('')
   }
 
-  // Gửi yêu cầu nạp tiền (POST, truyền user_cccd và amount vào body)
+  // Gửi yêu cầu nạp tiền
   const handleSubmit = async () => {
     if (!amount) {
       setMessage('❌ Vui lòng chọn số tiền muốn nạp.')
       return
     }
+    if (!CCCD) {
+      setMessage('❌ Thiếu thông tin CCCD. Vui lòng đăng nhập lại.')
+      return
+    }
     try {
       setPending(true)
       const res = await axios.post(`${baseURL}/request-topup`, {
-        user_cccd: CCCD,      // Truyền CCCD vào body
+        user_cccd: CCCD,
         amount
       })
       setMessage(res.data.message || '✅ Gửi yêu cầu thành công! Vui lòng chờ admin duyệt.')
-      setPending(false)
-      fetchBalance() // Cập nhật số dư luôn nếu cần
+      setAmount(null)
+      setQrUrl('')
+      fetchBalance()
     } catch (err) {
       setMessage(
         err.response?.data?.error ||
         '❌ Không gửi được yêu cầu đến admin.'
       )
+    } finally {
       setPending(false)
     }
   }
 
   useEffect(() => {
+    if (!CCCD) return
     fetchUserInfo()
     fetchBalance()
     // eslint-disable-next-line
-  }, [])
+  }, [CCCD])
+
+  if (!CCCD) {
+    return (
+      <div className="wallet-card">
+        <p style={{ color: 'red', padding: 24 }}>
+          Bạn cần đăng nhập để sử dụng ví điện tử.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="wallet-card">
@@ -88,12 +108,14 @@ const Wallet = () => {
       <button className="refresh-btn" onClick={fetchBalance} disabled={pending}>
         🔄 Làm mới số dư
       </button>
-
-      <div className={balance <= 0 ? 'wallet-warning' : 'wallet-ok'}>
-        {balance <= 0
-          ? '⚠️ Số dư ví còn ít.'
-          : `✅ Số dư hiện tại: ${balance.toLocaleString('vi-VN')} VND`}
-      </div>
+      <div className={balance < 20000 ? 'wallet-warning' : 'wallet-ok'}>
+  {balance < 10000
+    ? '❌ Số dư ví đã đạt mức tối thiểu 10.000 VND, bạn phải nạp thêm để tiếp tục giao dịch!'
+    : balance < 20000
+      ? '⚠️ Số dư ví sắp chạm hạn mức tối thiểu 10.000 VND. Hãy nạp thêm để không bị gián đoạn.'
+      : `✅ Số dư hiện tại: ${balance.toLocaleString('vi-VN')} VND`
+  }
+</div>
 
       <div className="topup-options">
         <p>💸 Chọn số tiền nạp:</p>
@@ -126,7 +148,6 @@ const Wallet = () => {
           {pending ? 'Đang xử lý...' : 'Nạp tiền'}
         </button>
       </div>
-
       {message && <p className="wallet-message">{message}</p>}
     </div>
   )
