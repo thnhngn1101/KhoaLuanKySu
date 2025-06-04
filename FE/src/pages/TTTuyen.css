@@ -1,0 +1,81 @@
+.route-container {
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+h2 {
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.highlight {
+  color: green;
+}
+
+.search-area {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.search-area input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-area button {
+  background-color: #21a366;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-area button:hover {
+  background-color: #1b8555;
+}
+
+.route-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.route-card {
+  display: flex;
+  align-items: center;
+  border: 1px solid #21a366;
+  background-color: #21a366;
+  border-radius: 4px;
+  color: white;
+  width: calc(33.33% - 12px);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.route-card:hover {
+  background-color: #1b8555;
+}
+
+.route-id {
+  font-size: 18px;
+  font-weight: bold;
+  background-color: white;
+  color: #21a366;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+.route-name {
+  flex: 1;
+}
