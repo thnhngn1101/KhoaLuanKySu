@@ -22,17 +22,13 @@ from datetime import datetime
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from payment_history_api import payment_history_bp
-
 
 UPLOAD_FOLDER = os.path.join("uploads", "student_cards")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 # === PostgreSQL Setup ===
-DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://khoaluan_owner:npg_JOW4CSV8fqId@ep-rapid-cloud-a1nzf35c-pooler.ap-southeast-1.aws.neon.tech/khoaluan?sslmode=require"
-engine = create_engine(DATABASE_URL)
-
+DATABASE_URL = "postgresql://postgres:1234@localhost/DoAnKhoaLuan"
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
@@ -60,17 +56,17 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
 
+CORS(app, supports_credentials=True)
 
-
-CORS(app, supports_credentials=True, 
-     origins=["http://localhost:5173"], 
-     allow_headers=["Content-Type", "user_cccd"])
-
-app.register_blueprint(payment_history_bp)
 # Kết nối database
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
-
+    return psycopg2.connect(
+        dbname=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        host=os.getenv('DB_HOST'),
+        port=os.getenv('DB_PORT')
+    )
 
 # Cấu hình email
 app.config.update(
@@ -632,10 +628,61 @@ def upload_student_card():
 def get_student_card(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+#tuyen
 
-# --- ĐĂNG KÝ CÁC ROUTE NẠP TIỀN ---
-from topup_api import topup_bp
-app.register_blueprint(topup_bp)
+@app.route("/api/bus_routes", methods=["GET"])
+def get_all_routes():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, route_name FROM bus_routes ORDER BY id")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([{"id": row[0], "route_name": row[1]} for row in rows])
+
+
+@app.route("/api/bus_routes/<route_id>", methods=["GET"])
+def get_route_detail(route_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT br.route_name, brd.departure_description, brd.arrival_description, brd.operator,
+               brd.route_type, brd.distance_km, brd.vehicle_type, brd.service_hours,
+               brd.trip_count, brd.trip_duration, brd.trip_interval
+        FROM bus_routes br
+        JOIN bus_route_details brd ON br.id = brd.route_id
+        WHERE br.id = %s
+    """, (route_id,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return jsonify({"error": "Route not found"}), 404
+    return jsonify({
+        "route_name": row[0],
+        "departure_description": row[1],
+        "arrival_description": row[2],
+        "operator": row[3],
+        "route_type": row[4],
+        "distance_km": float(row[5]),
+        "vehicle_type": row[6],
+        "service_hours": row[7],
+        "trip_count": row[8],
+        "trip_duration": row[9],
+        "trip_interval": row[10],
+    })
+
+
+@app.route("/api/bus_routes/<route_id>/prices", methods=["GET"])
+def get_ticket_prices(route_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT ticket_type, price FROM ticket_prices WHERE route_id = %s", (route_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([{"ticket_type": r[0], "price": r[1]} for r in rows])
+
 
 # Gửi test email khi chạy app
 if __name__ == '__main__':
@@ -650,7 +697,5 @@ if __name__ == '__main__':
             print("1. Đã bật xác minh 2 bước & tạo mật khẩu ứng dụng")
             print("2. Kiểm tra cấu hình trong .env")
             print("3. Kiểm tra tường lửa/mạng chặn cổng 587")
-            
-
 
     app.run(debug=True)
