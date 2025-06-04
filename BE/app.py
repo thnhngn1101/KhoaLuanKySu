@@ -22,13 +22,17 @@ from datetime import datetime
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import os
+from payment_history_api import payment_history_bp
+
 
 UPLOAD_FOLDER = os.path.join("uploads", "student_cards")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 # === PostgreSQL Setup ===
-DATABASE_URL = "postgresql://postgres:1234@localhost/DoAnKhoaLuan"
+DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://khoaluan_owner:npg_JOW4CSV8fqId@ep-rapid-cloud-a1nzf35c-pooler.ap-southeast-1.aws.neon.tech/khoaluan?sslmode=require"
+engine = create_engine(DATABASE_URL)
+
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
@@ -56,17 +60,17 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
 
-CORS(app, supports_credentials=True)
 
+
+CORS(app, supports_credentials=True, 
+     origins=["http://localhost:5173"], 
+     allow_headers=["Content-Type", "user_cccd"])
+
+app.register_blueprint(payment_history_bp)
 # Kết nối database
 def get_db_connection():
-    return psycopg2.connect(
-        dbname=os.getenv('DB_NAME'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        host=os.getenv('DB_HOST'),
-        port=os.getenv('DB_PORT')
-    )
+    return psycopg2.connect(DATABASE_URL)
+
 
 # Cấu hình email
 app.config.update(
@@ -629,6 +633,9 @@ def get_student_card(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
 
+# --- ĐĂNG KÝ CÁC ROUTE NẠP TIỀN ---
+from topup_api import topup_bp
+app.register_blueprint(topup_bp)
 
 # Gửi test email khi chạy app
 if __name__ == '__main__':
@@ -643,5 +650,7 @@ if __name__ == '__main__':
             print("1. Đã bật xác minh 2 bước & tạo mật khẩu ứng dụng")
             print("2. Kiểm tra cấu hình trong .env")
             print("3. Kiểm tra tường lửa/mạng chặn cổng 587")
+            
+
 
     app.run(debug=True)

@@ -52,13 +52,20 @@ function App() {
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/intro" element={<Intro />} />
+
           <Route path="/TTTuyen" element={<TTTuyen />} />
           <Route path="/tuyen/:id" element={<TuyenDetail />} />
+    
+          
+
           <Route path="/profile" element={<Profile />} />
           <Route path="/faceregister" element={<FaceRegister />} />
           <Route path="/verifyface" element={<VerifyFace />} />
           <Route path="/Wallet" element={<Wallet />} />
-          <Route path="/PaymentHistory" element={<PaymentHistory />} />
+        <Route path="/PaymentHistory" element={<PaymentHistory />} />
+
+
+
           
           
         </Route>
