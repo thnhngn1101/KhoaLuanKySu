@@ -12,6 +12,10 @@ import VerifyEmail from "./pages/verifyEmail"
 import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/resetPassword"
 
+
+import TTTuyen from "./pages/TTTuyen"
+import TuyenDetail from "./pages/TuyenDetail"
+
 import Profile from "./pages/Profile"
 import FaceRegister from "./pages/FaceRegister"
 import VerifyFace from "./pages/VerifyFace"
@@ -48,8 +52,7 @@ function App() {
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/intro" element={<Intro />} />
-          
-          
+          <Route path="/TTTuyen" element={<TTTuyen />} />
           <Route path="/tuyen/:id" element={<TuyenDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/faceregister" element={<FaceRegister />} />
