@@ -18,7 +18,7 @@ import TuyenDetail from "./pages/TuyenDetail"
 
 import Profile from "./pages/Profile"
 import FaceRegister from "./pages/FaceRegister"
-import VerifyFace from "./pages/VerifyFace"
+
 
 import Wallet from "./pages/Wallet"
 import PaymentHistory from "./pages/PaymentHistory"
@@ -60,7 +60,7 @@ function App() {
 
           <Route path="/profile" element={<Profile />} />
           <Route path="/faceregister" element={<FaceRegister />} />
-          <Route path="/verifyface" element={<VerifyFace />} />
+         
           <Route path="/Wallet" element={<Wallet />} />
         <Route path="/PaymentHistory" element={<PaymentHistory />} />
 

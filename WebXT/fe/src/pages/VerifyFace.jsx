@@ -8,7 +8,7 @@ export default function VerifyFace() {
   // eslint-disable-next-line no-unused-vars
   const [canVerify, setCanVerify] = useState(false)
   // eslint-disable-next-line no-unused-vars
-  const [fullName, setFullName] = useState("")
+  const [cccd, setCCCD] = useState("")
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -36,7 +36,6 @@ export default function VerifyFace() {
       const res = await fetch("http://localhost:5000/verify-face-web", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // bắt buộc
         body: JSON.stringify({ image: dataURL })
       })
 
@@ -44,12 +43,13 @@ export default function VerifyFace() {
 
       if (result.status === "success") {
         setMessage(`✅ Xác thực thành công: ${result.full_name}`)
-        setFullName(result.full_name)
+        setCCCD(result.full_name)
+
         setCanVerify(true)
       } else {
         setMessage(result.message || "❌ Không xác thực được.")
         setCanVerify(false)
-        setFullName("")
+        setCCCD("")
       }
     } catch {
       setMessage("❌ Không kết nối được server.")

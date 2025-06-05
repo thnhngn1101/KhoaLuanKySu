@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
+import { useNavigate } from "react-router-dom"
 import './Wallet.css'
 
 const qrImages = {
@@ -9,9 +10,8 @@ const qrImages = {
 }
 
 const Wallet = () => {
-  // Lấy CCCD từ localStorage (không gán cứng)
+  const navigate = useNavigate()
   const CCCD = localStorage.getItem('user_cccd')
-
   const [balance, setBalance] = useState(0)
   const [amount, setAmount] = useState(null)
   const [qrUrl, setQrUrl] = useState('')
@@ -21,9 +21,17 @@ const Wallet = () => {
 
   const baseURL = 'http://localhost:5000'
 
-  // Lấy số dư ví từ backend (GET, truyền user_cccd qua params)
+  // Nếu chưa đăng nhập thì chuyển về trang login
+  if (!CCCD) {
+    return (
+      <div className="wallet-card" style={{ color: "red", textAlign: "center", padding: 24 }}>
+        Bạn cần <span style={{color: "blue", cursor: "pointer"}} onClick={() => navigate("/login")}>đăng nhập</span> để sử dụng ví điện tử.
+      </div>
+    )
+  }
+
+  // Lấy số dư ví
   const fetchBalance = async () => {
-    if (!CCCD) return
     try {
       const res = await axios.get(`${baseURL}/wallet`, {
         params: { user_cccd: CCCD }
@@ -34,9 +42,8 @@ const Wallet = () => {
     }
   }
 
-  // Lấy tên người dùng từ backend
+  // Lấy tên người dùng
   const fetchUserInfo = async () => {
-    if (!CCCD) return
     try {
       const res = await axios.get(`${baseURL}/user-info`, {
         params: { user_cccd: CCCD }
@@ -47,7 +54,7 @@ const Wallet = () => {
     }
   }
 
-  // Xử lý khi chọn số tiền nạp
+  // Chọn số tiền nạp
   const handleAmountClick = (value) => {
     setAmount(value)
     setQrUrl(qrImages[value])
@@ -58,10 +65,6 @@ const Wallet = () => {
   const handleSubmit = async () => {
     if (!amount) {
       setMessage('❌ Vui lòng chọn số tiền muốn nạp.')
-      return
-    }
-    if (!CCCD) {
-      setMessage('❌ Thiếu thông tin CCCD. Vui lòng đăng nhập lại.')
       return
     }
     try {
@@ -84,22 +87,12 @@ const Wallet = () => {
     }
   }
 
+  // Khi CCCD đổi (hoặc lần đầu load)
   useEffect(() => {
-    if (!CCCD) return
     fetchUserInfo()
     fetchBalance()
     // eslint-disable-next-line
   }, [CCCD])
-
-  if (!CCCD) {
-    return (
-      <div className="wallet-card">
-        <p style={{ color: 'red', padding: 24 }}>
-          Bạn cần đăng nhập để sử dụng ví điện tử.
-        </p>
-      </div>
-    )
-  }
 
   return (
     <div className="wallet-card">
@@ -109,13 +102,13 @@ const Wallet = () => {
         🔄 Làm mới số dư
       </button>
       <div className={balance < 20000 ? 'wallet-warning' : 'wallet-ok'}>
-  {balance < 10000
-    ? '❌ Số dư ví đã đạt mức tối thiểu 10.000 VND, bạn phải nạp thêm để tiếp tục giao dịch!'
-    : balance < 20000
-      ? '⚠️ Số dư ví sắp chạm hạn mức tối thiểu 10.000 VND. Hãy nạp thêm để không bị gián đoạn.'
-      : `✅ Số dư hiện tại: ${balance.toLocaleString('vi-VN')} VND`
-  }
-</div>
+        {balance < 10000
+          ? '❌ Số dư ví đã đạt mức tối thiểu 10.000 VND, bạn phải nạp thêm để tiếp tục giao dịch!'
+          : balance < 20000
+            ? '⚠️ Số dư ví sắp chạm hạn mức tối thiểu 10.000 VND. Hãy nạp thêm để không bị gián đoạn.'
+            : `✅ Số dư hiện tại: ${balance.toLocaleString('vi-VN')} VND`
+        }
+      </div>
 
       <div className="topup-options">
         <p>💸 Chọn số tiền nạp:</p>
@@ -135,10 +128,11 @@ const Wallet = () => {
           <div className="qr-preview">
             <img src={qrUrl} alt="QR code" style={{ maxWidth: 200, marginTop: 10 }} />
             <p className="qr-hint">
-              Vui lòng chuyển khoản đúng số tiền & nội dung để admin duyệt nhanh.
+              Vui lòng chuyển khoản đúng số tiền &amp; nội dung để admin duyệt nhanh.
             </p>
           </div>
         )}
+
         <button
           onClick={handleSubmit}
           className="submit-btn"

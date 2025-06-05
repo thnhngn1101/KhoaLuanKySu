@@ -1,8 +1,8 @@
 "use client"
 
-import { useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
-import logo from "../assets/react.svg"
+import { useNavigate, Link } from "react-router-dom"
+import logo from "../assets/logo.svg"
 import "./Header.css"
 
 export default function Header() {
@@ -21,6 +21,7 @@ export default function Header() {
       credentials: "include",
     }).then(() => {
       localStorage.removeItem("ho_va_ten")
+        localStorage.removeItem("user_cccd")   
       setUserName("")
       navigate("/")
     })
@@ -34,21 +35,25 @@ export default function Header() {
     <header className="site-header">
       <div className="header-container">
         <div className="logo-container">
-          <img
-            src={logo || "/placeholder.svg"}
-            alt="Logo Sở Giao Thông Công Chánh TPHCM"
-            className="logo"
-          />
+          <Link to="/">
+            <img
+              src={logo || "/placeholder.svg"}
+              alt="Logo Sở Giao Thông Công Chánh TPHCM"
+              className="logo"
+              style={{ cursor: "pointer" }}
+            />
+          </Link>
           <div className="site-title">
+             <Link to="/">
             <h1>SỞ GIAO THÔNG CÔNG CHÁNH THÀNH PHỐ HỒ CHÍ MINH</h1>
             <h2>TRUNG TÂM QUẢN LÝ GIAO THÔNG CÔNG CỘNG THÀNH PHỐ HỒ CHÍ MINH</h2>
+            </Link>
           </div>
         </div>
 
         <div className="header-actions">
           {userName ? (
             <div className="user-dropdown">
-             
               <div className="user-name">
                 {userName}
                 <div className="dropdown-content">

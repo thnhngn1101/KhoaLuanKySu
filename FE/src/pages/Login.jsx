@@ -43,6 +43,7 @@ export default function Login() {
       if (res.ok) {
         alert(`Chào mừng, ${data.ho_va_ten}!`)
         localStorage.setItem("ho_va_ten", data.ho_va_ten)
+          localStorage.setItem("user_cccd", cccd) 
         navigate("/")
       } else {
         setError(data.message || "Đăng nhập thất bại.")
