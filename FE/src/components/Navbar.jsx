@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Search, Menu } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
+import "./Navbar.css";
 
 const mockRoutes = [
   { id: "01", name: "Bến Thành - Bến xe buýt Chợ Lớn" },
@@ -42,10 +43,10 @@ export default function Navbar() {
     { id: 1, label: "Trang chủ", url: "/" },
     { id: 2, label: "Giới thiệu", url: "/Intro" },
     { id: 3, label: "Thông tin tuyến", url: "/TTTuyen" },
-    { id: 5, label: "Đăng ký khuôn mặt", url: "/FaceRegister" },
-    { id: 6, label: "Ví tiền", url: "/Wallet" },
-    { id: 7, label: "Lịch sử thanh toán", url: "/PaymentHistory" },
-    { id: 8, label: "Xac thuc khuon mat", url: "/VerifyFace" },
+    { id: 4, label: "Đăng ký khuôn mặt", url: "/FaceRegister" },
+    { id: 5, label: "Ví tiền", url: "/Wallet" },
+    { id: 6, label: "Lịch sử thanh toán", url: "/PaymentHistory" },
+    
   ]
 
   return (
