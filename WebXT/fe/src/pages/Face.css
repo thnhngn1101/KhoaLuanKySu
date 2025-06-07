@@ -1,6 +1,3 @@
-/* Face.css */
-
-/* Tổng thể khung căn giữa và nền gradient */
 .face-register-container {
   display: flex;
   flex-direction: column;
@@ -17,21 +14,37 @@
 
 /* Tiêu đề */
 .face-register-container h2 {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: bold;
   color: #1d4ed8;
+  margin-bottom: 18px;
+}
+
+/* Khung thông tin tài xế */
+.driver-info {
+  margin-bottom: 20px;
+  padding: 16px 22px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px #0001;
+  width: 420px;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* Video và khung viền */
 .video-wrapper {
   position: relative;
-  width: 320px;
-  height: 240px;
-  border-radius: 12px;
+  width: 480px;
+  height: 340px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
-  border: 2px solid #ccc;
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.13);
+  border: 2px solid #c0d2f6;
   background-color: #000;
+  margin-bottom: 8px;
 }
 
 /* Camera hiển thị full khung */
@@ -44,55 +57,86 @@ video {
 /* Khung giả định vị trí khuôn mặt */
 .face-box {
   position: absolute;
-  top: 25%;
-  left: 25%;
-  width: 50%;
-  height: 50%;
-  border: 2px dashed #1d4ed8;
-  border-radius: 8px;
+  top: 8%;
+  left: 17%;
+  width: 66%;
+  height: 84%;
+  border: 3px dashed #1d4ed8;
+  border-radius: 18px;
   pointer-events: none;
 }
 
-/* Thông báo trạng thái */
+/* Message cảnh báo: CỐ ĐỊNH góc phải trên */
+.message-fixed-top-right {
+  position: fixed;
+  top: 34px;
+  right: 40px;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  max-width: 450px;
+  min-width: 300px;
+}
+
 .message-box {
-  margin-top: 20px;
-  padding: 12px 20px;
-  border-radius: 8px;
+  margin-top: 0;
+  padding: 18px 26px;
+  border-radius: 16px;
   font-weight: 500;
-  font-size: 16px;
-  max-width: 360px;
+  font-size: 18px;
+  max-width: 450px;
+  min-width: 300px;
+  box-shadow: 0 2px 16px #0002;
+  line-height: 1.55;
+  display: flex;
+  align-items: center;
 }
 
 .message-box.success {
   background-color: #e0fce5;
   color: #15803d;
-  border: 1px solid #22c55e;
+  border: 1.5px solid #22c55e;
 }
 
 .message-box.error {
   background-color: #ffe4e6;
   color: #b91c1c;
-  border: 1px solid #f87171;
+  border: 1.5px solid #f87171;
 }
 
-/* Khung thông tin tài xế */
-.driver-info-box {
-  margin-top: 24px;
-  padding: 16px;
-  background-color: #f0f9ff;
-  border-left: 4px solid #3b82f6;
-  border-radius: 12px;
-  text-align: left;
-  max-width: 360px;
+@media (max-width: 700px) {
+  .face-register-container {
+    padding: 4px;
+  }
+  .driver-info, .video-wrapper {
+    width: 98vw;
+    max-width: 98vw;
+  }
+  .message-fixed-top-right {
+    right: 6px;
+    top: 6px;
+    max-width: 98vw;
+    min-width: 0;
+  }
+  .message-box {
+    font-size: 16px;
+    min-width: 0;
+    max-width: 97vw;
+    padding: 10px 8px;
+  }
 }
 
-.driver-info-box h3 {
-  color: #1d4ed8;
-  font-size: 18px;
-  margin-bottom: 8px;
+.message-fixed-top-right {
+  animation: fade-in 0.7s;
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-12px);}
+  to   { opacity: 1; transform: translateY(0);}
 }
 
-.driver-info-box p {
-  margin: 4px 0;
-  color: #333;
+.message-box.student {
+  background: #f185b1 !important;
+  color: #fbfbfb !important;
+  border-left: 6px solid#f185b1 !important;
+  font-weight: bold;
 }
