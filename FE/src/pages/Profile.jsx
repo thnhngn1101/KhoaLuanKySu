@@ -2,6 +2,26 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import "./Profile.css"
 
+// ===== Hàm phân tích CCCD lấy giới tính, năm sinh =====
+function parseCCCD(cccd) {
+  if (!cccd || cccd.length !== 12) return {};
+
+  const genderCentury = Number(cccd[3]);
+  const yearSuffix = Number(cccd.substring(4, 6));
+
+  let year = 1900 + yearSuffix;
+  if (genderCentury === 0 || genderCentury === 1) {
+    year = 1900 + yearSuffix;
+  } else if (genderCentury === 2 || genderCentury === 3) {
+    year = 2000 + yearSuffix;
+  } else if (genderCentury === 4 || genderCentury === 5) {
+    year = 2100 + yearSuffix;
+  }
+  const gender = (genderCentury % 2 === 0) ? "Nam" : "Nữ";
+
+  return { gender, birthYear: year };
+}
+
 export default function Profile() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
@@ -21,9 +41,11 @@ export default function Profile() {
     phone_number: ""
   })
 
+  // ==== Thêm state cho upload ảnh thẻ sinh viên ====
   const [showUpload, setShowUpload] = useState(false)
   const [uploadMessage, setUploadMessage] = useState("")
   const [selectedFile, setSelectedFile] = useState(null)
+  const [studentId, setStudentId] = useState("")
 
   useEffect(() => {
     fetch("http://localhost:5000/dashboard", { credentials: "include" })
@@ -121,6 +143,7 @@ export default function Profile() {
     }
   }
 
+  // ==== Hàm xử lý upload ảnh thẻ sinh viên kèm student_id ====
   const handleUploadStudentCard = async (e) => {
     e.preventDefault()
     setUploadMessage("")
@@ -128,9 +151,14 @@ export default function Profile() {
       setUploadMessage("❌ Vui lòng chọn ảnh.")
       return
     }
+    if (!studentId.trim()) {
+      setUploadMessage("❌ Vui lòng nhập mã số sinh viên.")
+      return
+    }
 
     const formData = new FormData()
     formData.append("file", selectedFile)
+    formData.append("student_id", studentId)
 
     try {
       const res = await fetch("http://localhost:5000/upload-student-card", {
@@ -143,6 +171,7 @@ export default function Profile() {
       if (res.ok) {
         setUploadMessage(text)
         setSelectedFile(null)
+        setStudentId("")
         setShowUpload(false)
 
         const updated = await fetch("http://localhost:5000/dashboard", { credentials: "include" })
@@ -157,6 +186,11 @@ export default function Profile() {
   }
 
   if (loading) return <p>⏳ Đang tải dữ liệu...</p>
+
+  // === Detect từ CCCD ===
+  const { gender, birthYear } = parseCCCD(user?.cccd || "");
+  const now = new Date();
+  const age = birthYear ? now.getFullYear() - birthYear : "Chưa rõ";
 
   return (
     <div className="profile-wrapper">
@@ -189,9 +223,9 @@ export default function Profile() {
               <div className="info-row"><span>📱 Số điện thoại:</span> {user?.phone_number || "Chưa cập nhật"}</div>
               <div className="info-row"><span>🎓 Mã sinh viên:</span> {user?.student_id || "Không có"}</div>
               <div className="info-row"><span>📅 Năm nhập học:</span> {user?.student_enroll_year || "Không có"}</div>
-              <div className="info-row"><span>👫 Giới tính:</span> {user?.gender || "Chưa rõ"}</div>
-              <div className="info-row"><span>🎂 Năm sinh:</span> {user?.birth_year || "Chưa rõ"}</div>
-              <div className="info-row"><span>🔢 Tuổi:</span> {user?.age || "Chưa rõ"}</div>
+              <div className="info-row"><span>👫 Giới tính:</span> {gender || "Chưa rõ"}</div>
+              <div className="info-row"><span>🎂 Năm sinh:</span> {birthYear || "Chưa rõ"}</div>
+              <div className="info-row"><span>🔢 Tuổi:</span> {age}</div>
               <div className="info-row"><span>🏙️ Tỉnh thành:</span> {user?.province || "Không rõ"}</div>
               <div className="info-row"><span>🕓 Ngày tạo:</span> {user?.created_at}</div>
 
@@ -221,7 +255,18 @@ export default function Profile() {
           {showUpload && (
             <form className="upload-form" onSubmit={handleUploadStudentCard}>
               <h4>📎 Chọn ảnh thẻ sinh viên</h4>
-              <input type="file" accept="image/*" onChange={e => setSelectedFile(e.target.files[0])} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setSelectedFile(e.target.files[0])}
+              />
+              <input
+                type="text"
+                placeholder="Nhập mã số sinh viên"
+                value={studentId}
+                onChange={e => setStudentId(e.target.value)}
+                required
+              />
               <button type="submit" className="primary-btn">📤 Gửi ảnh</button>
               {uploadMessage && <p className={uploadMessage.includes("✅") ? "message" : "error"}>{uploadMessage}</p>}
             </form>

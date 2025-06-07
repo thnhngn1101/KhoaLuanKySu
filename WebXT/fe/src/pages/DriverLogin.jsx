@@ -15,12 +15,19 @@ const DriverLogin = () => {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/driver_login", {
+      const res = await axios.post("http://localhost:8000/api/driver_login", {
         cccd,
         license_plate: licensePlate,
       });
 
       if (res.data.success) {
+        // Lưu thông tin vào localStorage
+        localStorage.setItem("driver_name", res.data.driver_name);
+        localStorage.setItem("bus_license_plate", res.data.license_plate);
+        localStorage.setItem("bus_route_id", res.data.route_id);
+        localStorage.setItem("bus_route_name", res.data.route_name);
+        localStorage.setItem("driver_cccd", cccd);
+
         navigate("/verifyface");
       } else {
         setError(res.data.message || "Đăng nhập thất bại");

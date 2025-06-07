@@ -5,6 +5,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os, secrets, psycopg2
 from dotenv import load_dotenv
 from functools import wraps
+from flask import Flask
+from flask_cors import CORS
+from facenet_pytorch import InceptionResnetV1, MTCNN
+from PIL import Image
+import torch
+import tenseal as ts
+import cv2
+import numpy as np
+
+import base64
+from io import BytesIO
 
 from sqlalchemy import create_engine, Table, Column, String, LargeBinary, TIMESTAMP, MetaData, ForeignKey, select
 from datetime import datetime
@@ -12,7 +23,6 @@ from datetime import datetime
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from payment_history_api import payment_history_bp
 
 UPLOAD_FOLDER = os.path.join("uploads", "student_cards")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -22,6 +32,15 @@ DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://khoaluan_owner:npg_JOW
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 metadata.reflect(bind=engine)
+face_embeddings = metadata.tables["face_embeddings"]
+
+# Mô hình và context mã hóa
+face_model = InceptionResnetV1(pretrained='vggface2').eval()
+face_detector = MTCNN(image_size=160, margin=20)
+
+face_context = ts.context(ts.SCHEME_TYPE.CKKS, 8192, [60, 40, 40, 60])
+face_context.global_scale = 2**40
+face_context.generate_galois_keys()
 
 # Load biến môi trường
 load_dotenv()
@@ -30,63 +49,19 @@ FE_BASE_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
-#tuyen
-@app.route("/api/bus_routes", methods=["GET"])
-def get_all_routes():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT id, route_name FROM bus_routes ORDER BY id")
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify([{"id": row[0], "route_name": row[1]} for row in rows])
 
-@app.route("/api/bus_routes/<route_id>", methods=["GET"])
-def get_route_detail(route_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT br.route_name, brd.departure_description, brd.arrival_description, brd.operator,
-               brd.route_type, brd.distance_km, brd.vehicle_type, brd.service_hours,
-               brd.trip_count, brd.trip_duration, brd.trip_interval
-        FROM bus_routes br
-        JOIN bus_route_details brd ON br.id = brd.route_id
-        WHERE br.id = %s
-    """, (route_id,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    if not row:
-        return jsonify({"error": "Route not found"}), 404
-    return jsonify({
-        "route_name": row[0],
-        "departure_description": row[1],
-        "arrival_description": row[2],
-        "operator": row[3],
-        "route_type": row[4],
-        "distance_km": float(row[5]),
-        "vehicle_type": row[6],
-        "service_hours": row[7],
-        "trip_count": row[8],
-        "trip_duration": row[9],
-        "trip_interval": row[10],
-    })
+CORS(app, supports_credentials=True)
 
-@app.route("/api/bus_routes/<route_id>/prices", methods=["GET"])
-def get_ticket_prices(route_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT ticket_type, price FROM ticket_prices WHERE route_id = %s", (route_id,))
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify([{"ticket_type": r[0], "price": r[1]} for r in rows])
+# Kết nối database
+def get_db_connection():
+    return psycopg2.connect(
+        dbname=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        host=os.getenv('DB_HOST'),
+        port=os.getenv('DB_PORT')
+    )
 
-CORS(app, supports_credentials=True, 
-     origins=["http://localhost:5173"], 
-     allow_headers=["Content-Type", "user_cccd"])
-
-app.register_blueprint(payment_history_bp)
 
 # Kết nối database
 def get_db_connection():
@@ -371,6 +346,164 @@ def update_profile():
     finally:
         cur.close()
         conn.close()
+#tuyen
+@app.route("/api/bus_routes", methods=["GET"])
+def get_all_routes():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, route_name FROM bus_routes ORDER BY id")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([{"id": row[0], "route_name": row[1]} for row in rows])
+
+@app.route("/api/bus_routes/<route_id>", methods=["GET"])
+def get_route_detail(route_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT br.route_name, brd.departure_description, brd.arrival_description, brd.operator,
+               brd.route_type, brd.distance_km, brd.vehicle_type, brd.service_hours,
+               brd.trip_count, brd.trip_duration, brd.trip_interval
+        FROM bus_routes br
+        JOIN bus_route_details brd ON br.id = brd.route_id
+        WHERE br.id = %s
+    """, (route_id,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return jsonify({"error": "Route not found"}), 404
+    return jsonify({
+        "route_name": row[0],
+        "departure_description": row[1],
+        "arrival_description": row[2],
+        "operator": row[3],
+        "route_type": row[4],
+        "distance_km": float(row[5]),
+        "vehicle_type": row[6],
+        "service_hours": row[7],
+        "trip_count": row[8],
+        "trip_duration": row[9],
+        "trip_interval": row[10],
+    })
+
+@app.route("/api/bus_routes/<route_id>/prices", methods=["GET"])
+def get_ticket_prices(route_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT ticket_type, price FROM ticket_prices WHERE route_id = %s", (route_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([{"ticket_type": r[0], "price": r[1]} for r in rows])
+
+CORS(app, supports_credentials=True, 
+     origins=["http://localhost:5173"], 
+     allow_headers=["Content-Type", "user_cccd"])
+from payment_history_api import payment_history_bp
+
+app.register_blueprint(payment_history_bp)
+
+#Face_api
+def extract_embedding(img: Image.Image):
+    face = face_detector(img)
+    if face is None:
+        return None
+    with torch.no_grad():
+        return face_model(face.unsqueeze(0)).squeeze().numpy()
+
+def cosine_similarity(enc_vec1, enc_vec2):
+    dot = enc_vec1.dot(enc_vec2).decrypt()[0]
+    norm1 = enc_vec1.dot(enc_vec1).decrypt()[0] ** 0.5
+    norm2 = enc_vec2.dot(enc_vec2).decrypt()[0] ** 0.5
+    return dot / (norm1 * norm2)
+
+def get_face_embeddings_table():
+    return "face_embeddings"
+
+def is_blurry(image, threshold=80.0):
+    gray = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+    return cv2.Laplacian(gray, cv2.CV_64F).var() < threshold
+
+def face_area_ratio(box, shape):
+    x1, y1, x2, y2 = box
+    face_area = (x2 - x1) * (y2 - y1)
+    return face_area / (shape[0] * shape[1])
+
+def is_tilted(box, tolerance=0.4):
+    x1, y1, x2, y2 = box
+    ratio = (x2 - x1) / (y2 - y1)
+    return ratio > (1 + tolerance) or ratio < (1 - tolerance)
+
+
+
+@app.route("/register-face-web", methods=["POST"])
+def register_face_web():
+    if "cccd" not in session:
+        return "Bạn chưa đăng nhập.", 401
+
+    try:
+        data = request.get_json()
+        if not data or "image" not in data:
+            return "Thiếu dữ liệu ảnh.", 400
+
+        img_data = data["image"].split(",")[1]
+        img_bytes = base64.b64decode(img_data)
+        img = Image.open(BytesIO(img_bytes)).convert("RGB")
+
+        boxes, _ = face_detector.detect(img)
+        if boxes is None or len(boxes) != 1:
+            return "❌ Phải có đúng một khuôn mặt duy nhất.", 400
+
+        if is_tilted(boxes[0]):
+            return "❌ Khuôn mặt đang nghiêng quá mức.", 400
+        if face_area_ratio(boxes[0], img.size[::-1]) < 0.2:
+            return "❌ Khuôn mặt quá nhỏ trong khung hình.", 400
+        if is_blurry(img):
+            return "❌ Ảnh bị mờ. Vui lòng giữ yên khuôn mặt.", 400
+
+        embedding = extract_embedding(img)
+        if embedding is None:
+            return "❌ Không nhận diện được khuôn mặt.", 400
+
+        enc_vector = ts.ckks_vector(face_context, embedding.tolist())
+        cccd = session["cccd"]
+
+        with engine.begin() as conn:
+            conn.execute(face_embeddings.delete().where(face_embeddings.c.user_cccd == cccd))
+            conn.execute(face_embeddings.insert().values(
+                user_cccd=cccd,
+                encrypted_embedding=enc_vector.serialize(),
+                created_at=datetime.utcnow()
+            ))
+
+        return "✅ Đăng ký khuôn mặt thành công!"
+    except Exception as e:
+        return f"Lỗi: {str(e)}", 500
+
+@app.route("/register-face-web/check", methods=["POST"])
+def check_face_condition():
+    try:
+        data = request.get_json()
+        img_data = data["image"].split(",")[1]
+        img_bytes = base64.b64decode(img_data)
+        img = Image.open(BytesIO(img_bytes)).convert("RGB")
+
+        boxes, _ = face_detector.detect(img)
+        if boxes is None or len(boxes) != 1:
+            return "❌ Phải có đúng một khuôn mặt duy nhất.", 200
+        if is_tilted(boxes[0]):
+            return "❌ Khuôn mặt đang nghiêng quá mức.", 200
+        if face_area_ratio(boxes[0], img.size[::-1]) < 0.2:
+            return "❌ Khuôn mặt quá nhỏ trong khung hình.", 200
+        if is_blurry(img):
+            return "❌ Ảnh bị mờ. Vui lòng giữ yên khuôn mặt.", 200
+
+        return "✅ Khuôn mặt đủ điều kiện", 200
+    except Exception as e:
+        return f"❌ Lỗi kiểm tra: {str(e)}", 500
+
 
 # Gửi email khôi phục mật khẩu
 @app.route("/forgot-password", methods=["POST"])
@@ -485,6 +618,9 @@ def get_student_card(filename):
 # --- ĐĂNG KÝ CÁC ROUTE NẠP TIỀN ---
 from topup_api import topup_bp
 app.register_blueprint(topup_bp)
+
+from student_api import student_bp
+app.register_blueprint(student_bp)
 
 # Gửi test email khi chạy app
 if __name__ == '__main__':
