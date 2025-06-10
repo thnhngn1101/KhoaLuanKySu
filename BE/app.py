@@ -109,10 +109,10 @@ def register():
             return "CCCD hoặc Email đã tồn tại.", 400
 
         # Lấy passenger_type mặc định
-        cur.execute("SELECT id FROM passenger_types WHERE type_name = %s", ("Người dùng khác",))
+        cur.execute("SELECT id FROM passenger_types WHERE type_name = %s", ("Khách thường",))
         row = cur.fetchone()
         if not row:
-            return "Chưa có loại hành khách 'Người dùng khác' trong bảng passenger_types.", 500
+            return "Chưa có loại hành khách 'Khách thường' trong bảng passenger_types.", 500
         passenger_type_id = row[0]
 
         # --- Trích xuất thông tin từ CCCD ---
